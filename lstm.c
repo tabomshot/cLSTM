@@ -907,119 +907,6 @@ void lstm_read_net_layers(lstm_model_t** model, const char * filename)
 	fclose(fp);
 }
 
-
-void lstm_output_string_layers(lstm_model_t ** model_layers, int first, int numbers_to_display, int layers)
-{
-	lstm_values_cache_t ***caches_layer;
-	int i = 0, count, index, p = 0, b = 0;
-	char input = first;
-	int F = model_layers[0]->F;
-
-	caches_layer = calloc(layers, sizeof(lstm_values_cache_t**));
-
-	if ( caches_layer == NULL )
-		lstm_init_fail("Failed to output string\n");
-
-	p = 0;
-	while ( p < layers ) {
-		caches_layer[p] = calloc(2, sizeof(lstm_values_cache_t*));
-		b = 0;
-		while ( b < 2 ) {
-			caches_layer[p][b] = lstm_cache_container_init(model_layers[p]->N, model_layers[p]->F); 
-			++b;
-		}
-		++p;
-	}
-
-	//double *first_layer_input = (double*)calloc(F, sizeof(double));
-	double *first_layer_input;
-	init_zero_vector(&first_layer_input, F);
-	//double first_layer_input[F];
-
-	lstm_cache_container_set_start(caches_layer[0][0], model_layers[0]->N);
-	lstm_cache_container_set_start(caches_layer[0][0], model_layers[0]->N);
-
-	while ( i < numbers_to_display ) {
-
-		index = input;
-
-		count = 0;
-		while ( count < F ) {
-			first_layer_input[count] = 0.0;
-			++count;
-		}
-
-		first_layer_input[index] = 1.0;
-
-		p = layers - 1;
-		lstm_forward_propagate(model_layers[p], first_layer_input, caches_layer[p][i % 2], caches_layer[p][(i+1)%2], p == 0);
-
-		if ( p > 0 ) {
-			--p;
-			while ( p >= 0 ) {
-				lstm_forward_propagate(model_layers[p], caches_layer[p+1][(i+1)%2]->probs, caches_layer[p][i % 2], caches_layer[p][(i+1)%2], p == 0);	
-				--p;
-			}
-			p = 0;
-		}
-
-		int input_tmp = 0;
-		double max_input = 0;
-		for (int j = 0; j < F; j++) {
-			if (caches_layer[p][(j + 1) % 2]->probs[j] > max_input) {
-				input_tmp = j;
-				max_input = caches_layer[p][(j + 1) % 2]->probs[j];
-			}
-		}
-		input = input_tmp;
-		/*
-		//probability_choice here
-		{
-			double sum = 0, random_value;
-			int j = 0;
-			input = 0;
-			random_value = ((double)rand()) / RAND_MAX;
-
-			//	printf("[%lf]", random_value);
-
-			while (j < F) {
-				sum += caches_layer[p][(j + 1) % 2]->probs[j];
-
-				if (sum - random_value > 0) {
-					input = j;
-					break;
-				}
-
-				++j;
-			}
-		}*/
-
-		printf ( "%x", input );
-
-		++i;
-	}
-
-	p = 0;
-	while ( p < layers ) {
-
-		b = 0;
-		while ( b < 2 ) {
-			lstm_cache_container_free( caches_layer[p][b]);
-			free(caches_layer[p][b]);
-			++b;
-		}
-		free(caches_layer[p]);
-		++p;
-	}
-
-	
-
-	free(caches_layer);
-
-	free_vector(&first_layer_input);
-	//free(first_layer_input);
-}
-
 void lstm_store_progress(unsigned int n, double loss)
 {
 	FILE * fp;
@@ -1324,12 +1211,14 @@ void lstm_train(lstm_model_t* model, lstm_model_t** model_layers, unsigned int t
 			time(&time_iter);
 			strftime(time_buffer, sizeof time_buffer, "%X", localtime(&time_iter));
 			float prob = pow(10, -loss);
-			printf("%s Iteration: %lu (epoch: %lu), Loss: %lf,Prob: %lf, record: %lf (iteration: %d), LR: %lf\n", time_buffer, n, epoch, loss,prob, record_keeper, record_iteration, model->params->learning_rate);
+
+			printf("%s Iteration: %lu (epoch: %lu), Loss: %lf,"
+					"Prob: %lf, record: %lf (iteration: %d), LR: %lf\n", 
+					time_buffer, n, epoch, loss,prob, record_keeper, 
+					record_iteration, model->params->learning_rate);
 			
 			printf("=====================================================\n");
 			//long long start = GetTickCount();
-			lstm_output_string_layers(model_layers, X_train[b], NUMBER_OF_CHARS_TO_DISPLAY_DURING_TRAINING, layers);
-			printf("\n");
 			//write truth here
 			for (int xt = 0; xt < NUMBER_OF_CHARS_TO_DISPLAY_DURING_TRAINING; xt++) {
 				int xttmp = b + xt;
