@@ -1,17 +1,21 @@
 CC = gcc
 
-SOURCES = test.c lstm.c embedding.c layers.c utilities.c 
-OBJECTS = test.o lstm.o embedding.o layers.o utilities.o 
+OBJECTS 		= lstm.o embedding.o layers.o utilities.o 
+OBJECTS_TRAIN 	= train.o 
+OBJECTS_PREDICT = predict.o 
 CFLAGS = -Wall -O3
 LDFLAGS = -lm  
 
-all: lstmtest
+all: lstmtrain lstmpredict
 
-lstmtest: $(OBJECTS) 
-	$(CC) -o $@ $(OBJECTS) $(CFLAGS) $(LDFLAGS) 
+lstmtrain: $(OBJECTS_TRAIN) $(OBJECTS)
+	$(CC) $(OBJECTS_TRAIN) $(OBJECTS) $(CFLAGS) -o $@ $(LDFLAGS) 
+
+lstmpredict: $(OBJECTS_PREDICT) $(OBJECTS)
+	$(CC) $(OBJECTS_PREDICT) $(OBJECTS) $(CFLAGS) -o $@ $(LDFLAGS) 
 
 clean:
-	-rm -f $(OBJECTS) lstmtest
+	-rm -f $(OBJECTS_PREDICT) $(OBJECTS_TRAIN) $(OBJECTS) lstmtrain lstmpredict 
 
 .PHONY: all clean
 

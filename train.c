@@ -5,21 +5,19 @@
 #include "embedding.h"
 #include "utilities.h"
 
-#define ITERATIONS 	50000
+#define ITERATIONS 	5000
 #define FEATURES 42
 
 // , *layer1 = NULL, *layer2 = NULL;
-lstm_model_t *model = NULL;
 lstm_model_t **model_layers;
 
-void store_the_net_layers(void)
+static void store_net_layers(int layers)
 {
 	if (model_layers != NULL) {
 		lstm_store_net_layers(model_layers, STD_LOADABLE_NET_NAME);
-		lstm_store_net_layers_as_json(model_layers, STD_JSON_NET_NAME);
+		lstm_store_net_layers_as_json(model_layers, layers, STD_JSON_NET_NAME);
 		printf("\nStored the net\n");
-	}
-	else {
+	} else {
 		printf("\nFailed to store the net!\n");
 		exit(-1);
 	}
@@ -28,14 +26,17 @@ void store_the_net_layers(void)
 	return;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) 
+{
 	int p = 0;
-	size_t num_datapoints = 0;
-	int *X_train, *Y_train;
-	
+
 	int layers = 1;
 	int neurons = 20;
+	
+	int *X_train = NULL;
+	int *Y_train = NULL;
 
+	size_t num_datapoints = 0;
 	lstm_model_parameters_t params;
 
 	params.loss_moving_avg = LOSS_MOVING_AVG;
@@ -136,7 +137,7 @@ int main(int argc, char **argv) {
 		);
 
 		// write trained model 
-		store_the_net_layers();
+		store_net_layers(layers);
 	}
 
 	// X_train is allocated by load_and_build_data

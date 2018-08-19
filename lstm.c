@@ -817,21 +817,24 @@ void lstm_store_net_layers(lstm_model_t** model, const char * filename)
 
 }
 
-void lstm_store_net_layers_as_json(lstm_model_t** model, const char * filename) 
+void lstm_store_net_layers_as_json(lstm_model_t** model, int layers, const char * filename) 
 {
-	FILE * fp;
-	int p = 0, r = 0, c = 0;
+	int p = 0;
+	FILE *fp;
 
 	fp = fopen(filename, "w");
-
 	if ( fp == NULL ) {
 		printf("Failed to open file: %s for writing.\n", filename);
 		return;
 	}
 
-	fprintf(fp, "{\n\"LSTM layers\": %d,\n", model[0]->params->layers);
-
-	while ( p < model[0]->params->layers) {
+	fprintf(fp, "{");
+	fprintf(fp, "\n");
+	fprintf(fp, "\"LSTM layers\": %d,\n", layers);
+	fprintf(fp, "\"LSTM neurons\": %d,\n", model[0]->N);
+	fprintf(fp, "\"Input Features\": %d,\n", model[0]->F);
+	
+	while (p < layers) {
 
 		if ( p > 0 ) 
 			fprintf(fp, ",\n");
@@ -876,11 +879,9 @@ void lstm_read_net_layers(lstm_model_t** model, const char * filename)
 {
 	// Will only work for ( layer1->N, layer1->F ) == ( layer2->N, layer2->F )
 	FILE * fp;
-
 	int p = 0;
 
 	fp = fopen(filename, "r");
-
 	if ( fp == NULL ) {
 		printf("Failed to open file: %s for reading.\n", filename);
 		return;
@@ -1214,7 +1215,7 @@ void lstm_train(lstm_model_t* model, lstm_model_t** model_layers, unsigned int t
 
 			printf("%s Iteration: %lu (epoch: %lu), Loss: %lf,"
 					"Prob: %lf, record: %lf (iteration: %d), LR: %lf\n", 
-					time_buffer, n, epoch, loss,prob, record_keeper, 
+					time_buffer, n, epoch, loss, prob, record_keeper, 
 					record_iteration, model->params->learning_rate);
 			
 			printf("=====================================================\n");
