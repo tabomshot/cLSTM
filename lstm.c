@@ -939,7 +939,8 @@ void lstm_model_regularization(lstm_model_t* model, lstm_model_t* gradients)
 }
 
 
-void lstm_train(lstm_model_t* model, lstm_model_t** model_layers, unsigned int training_points, int* X_train, int* Y_train, unsigned long iterations, int layers)
+void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, unsigned int training_points, 
+	int *X_train_app, int *X_train_locc, int *Y_train_app, unsigned long iterations, int layers)
 {
 	//int N,F,S, status = 0, p = 0;
 	int status = 0, p = 0;
@@ -1084,8 +1085,9 @@ void lstm_train(lstm_model_t* model, lstm_model_t** model_layers, unsigned int t
 				first_layer_input[tmp_count] = 0.0; 
 				++tmp_count;
 			}
-
-			first_layer_input[X_train[e3]] = 1.0;
+			first_layer_input[X_train_app[e3]] = 1.0;
+			if (X_train_locc) 
+				first_layer_input[X_train_locc[e3]] = 1.0;
 
 			/* Layer numbering starts at the output point of the net */
 			p = layers - 1;
@@ -1101,9 +1103,9 @@ void lstm_train(lstm_model_t* model, lstm_model_t** model_layers, unsigned int t
 			}
 
 #if USE_CROSS_ENTROPY
-			loss_tmp += cross_entropy( cache_layers[p][e2]->probs, Y_train[e3]);
+			loss_tmp += cross_entropy( cache_layers[p][e2]->probs, Y_train_app[e3]);
 #else
-			loss_tmp += mean_square_error(cache_layers[p][e2]->probs, model->F, Y_train[e3]);
+			loss_tmp += mean_square_error(cache_layers[p][e2]->probs, model->F, Y_train_app[e3]);
 #endif // USE_CROSS_ENTROPY
 
 			++i; ++q;
@@ -1153,7 +1155,7 @@ void lstm_train(lstm_model_t* model, lstm_model_t** model_layers, unsigned int t
 
 
 			p = 0;
-			lstm_backward_propagate(model_layers[p], cache_layers[p][e1]->probs, Y_train[e3], d_next_layers[p], cache_layers[p][e1], gradient_layers_entry[0], d_next_layers[p]);
+			lstm_backward_propagate(model_layers[p], cache_layers[p][e1]->probs, Y_train_app[e3], d_next_layers[p], cache_layers[p][e1], gradient_layers_entry[0], d_next_layers[p]);
 
 			if ( p < layers ) {
 				++p;
@@ -1225,7 +1227,7 @@ void lstm_train(lstm_model_t* model, lstm_model_t** model_layers, unsigned int t
 			for (int xt = 0; xt < NUMBER_OF_CHARS_TO_DISPLAY_DURING_TRAINING; xt++) {
 				int xttmp = b + xt;
 				if (xttmp < training_points) {
-					printf("%x", X_train[xttmp]);
+					printf("%x", X_train_app[xttmp]);
 				}
 			}
 			//start = GetTickCount() - start;
