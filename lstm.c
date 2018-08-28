@@ -784,7 +784,7 @@ void lstm_cache_container_set_start(lstm_values_cache_t * cache, int N)
 
 }
 
-void lstm_store_net_layers(lstm_model_t** model, const char * filename) 
+int lstm_store_net_layers(lstm_model_t** model, const char * filename) 
 {
 	FILE * fp;
 	int p = 0;
@@ -793,7 +793,7 @@ void lstm_store_net_layers(lstm_model_t** model, const char * filename)
 
 	if ( fp == NULL ) {
 		printf("Failed to open file: %s for writing.\n", filename);
-		return;
+		return -1;
 	}
 
 	while ( p < model[0]->params->layers) {
@@ -814,10 +814,10 @@ void lstm_store_net_layers(lstm_model_t** model, const char * filename)
 	}
 
 	fclose(fp);
-
+	return 0;
 }
 
-void lstm_store_net_layers_as_json(lstm_model_t** model, int layers, const char * filename) 
+int lstm_store_net_layers_as_json(lstm_model_t** model, int layers, const char * filename) 
 {
 	int p = 0;
 	FILE *fp;
@@ -825,7 +825,7 @@ void lstm_store_net_layers_as_json(lstm_model_t** model, int layers, const char 
 	fp = fopen(filename, "w");
 	if ( fp == NULL ) {
 		printf("Failed to open file: %s for writing.\n", filename);
-		return;
+		return -1;
 	}
 
 	fprintf(fp, "{");
@@ -872,10 +872,11 @@ void lstm_store_net_layers_as_json(lstm_model_t** model, int layers, const char 
 
 	fclose(fp);
 
+	return 0;
 }
 
 
-void lstm_read_net_layers(lstm_model_t** model, const char * filename) 
+int lstm_read_net_layers(lstm_model_t** model, const char * filename) 
 {
 	// Will only work for ( layer1->N, layer1->F ) == ( layer2->N, layer2->F )
 	FILE * fp;
@@ -884,7 +885,7 @@ void lstm_read_net_layers(lstm_model_t** model, const char * filename)
 	fp = fopen(filename, "r");
 	if ( fp == NULL ) {
 		printf("Failed to open file: %s for reading.\n", filename);
-		return;
+		return -1;
 	}
 
 	while ( p < model[0]->params->layers) {
@@ -906,6 +907,8 @@ void lstm_read_net_layers(lstm_model_t** model, const char * filename)
 
 	printf("Loaded the net: %s\n", filename);
 	fclose(fp);
+
+	return 0;
 }
 
 void lstm_store_progress(unsigned int n, double loss)
@@ -1140,7 +1143,6 @@ void lstm_train(lstm_model_t* model, lstm_model_t** model_layers, unsigned int t
 		while ( q > 0 ) {
 			e1 = q;
 			e2 = q - 1;
-
 			e3 = ( training_points + i - 1 ) % training_points;
 
 			p = 0;
@@ -1175,7 +1177,6 @@ void lstm_train(lstm_model_t* model, lstm_model_t** model_layers, unsigned int t
 
 		p = 0;
 		while ( p < layers ) {
-
 			if ( model->params->gradient_clip )
 				gradients_clip(gradient_layers[p], model->params->gradient_clip_limit);
 

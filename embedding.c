@@ -4,7 +4,6 @@
 
 #include "embedding.h"
 
-
 #define BUFFER_LEN 32
 
 // one number per line

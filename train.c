@@ -5,26 +5,24 @@
 #include "embedding.h"
 #include "utilities.h"
 
-#define ITERATIONS 	5000
+#define ITERATIONS 	50000
 #define FEATURES 42
 
-// , *layer1 = NULL, *layer2 = NULL;
-lstm_model_t **model_layers;
-
-static void store_net_layers(int layers)
+static int store_net_layers(int layers, lstm_model_t **model_layers)
 {
-	if (model_layers != NULL) {
-		lstm_store_net_layers(model_layers, STD_LOADABLE_NET_NAME);
-		lstm_store_net_layers_as_json(model_layers, layers, STD_JSON_NET_NAME);
-		printf("\nStored the net\n");
-	} else {
-		printf("\nFailed to store the net!\n");
-		exit(-1);
+	if (model_layers == NULL) {
+		printf("model_layers is null!\n");
+		return -1;
 	}
 
-	exit(0);
-	return;
-}
+	lstm_store_net_layers(model_layers, STD_LOADABLE_NET_NAME);
+	lstm_store_net_layers_as_json(model_layers, layers, STD_JSON_NET_NAME);
+	printf("model stored\n");
+
+	return 0;
+} 
+// , *layer1 = NULL, *layer2 = NULL;
+//lstm_model_t **model_layers;
 
 int main(int argc, char **argv) 
 {
@@ -36,7 +34,7 @@ int main(int argc, char **argv)
 	int *X_train = NULL;
 	int *Y_train = NULL;
 
-	size_t num_datapoints = 0;
+	ssize_t num_datapoints = 0;
 	lstm_model_parameters_t params;
 
 	params.loss_moving_avg = LOSS_MOVING_AVG;
