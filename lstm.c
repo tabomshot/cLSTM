@@ -642,7 +642,7 @@ void lstm_forward_propagate(lstm_model_t* model, double * input, lstm_values_cac
 
 void lstm_backward_propagate(lstm_model_t* model, double* y_probabilities, int y_correct, lstm_values_next_cache_t* d_next, lstm_values_cache_t* cache_in, lstm_model_t* gradients, lstm_values_next_cache_t* cache_out)
 {
-	double *h,*c,*dldh_next,*dldc_next, *dldy, *dldh, *dldho, *dldhf, *dldhi, *dldhc, *dldc;
+	double *h, *dldh_next, *dldc_next, *dldy, *dldh, *dldho, *dldhf, *dldhi, *dldhc, *dldc;
 	int N, F, S;
 
 	N = model->N;
@@ -658,7 +658,7 @@ void lstm_backward_propagate(lstm_model_t* model, double* y_probabilities, int y
 	dldhc = model->dldhc;
 
 	h = cache_in->h;
-	c = cache_in->c;
+	//c = cache_in->c;
 
 	dldh_next = d_next->dldh_next;
 	dldc_next = d_next->dldc_next;
@@ -948,13 +948,12 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 	//int N,F,S, status = 0, p = 0;
 	int status = 0, p = 0;
 	unsigned int i = 0, b = 0, q = 0, e1 = 0, e2 = 0, e3, record_iteration = 0, tmp_count, trailing;
-	unsigned long n = 0, decrease_threshold = model->params->learning_rate_decrease_threshold, epoch = 0;
+	unsigned long n = 0, epoch = 0;
 	double loss = -1, loss_tmp = 0.0, record_keeper = 0.0;
 #if ABORT_WHEN_IN_PURGATORY
 	double last_loss = -1;
 	unsigned long loss_count = 0;
 #endif
-	double initial_learning_rate = model->params->learning_rate;
 	time_t time_iter;
 	char time_buffer[40];
 
@@ -979,7 +978,7 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 	if ( stateful_d_next == NULL )
 		lstm_init_fail("Failed to allocate memory for stateful backprop through time deltas\n");
 	i = 0;
-	while ( i < layers) {
+	while ( i < (unsigned int) layers) {
 		stateful_d_next[i] = calloc( training_points/model->params->mini_batch_size + 1, sizeof(lstm_values_state_t));
 		if ( stateful_d_next[i] == NULL )
 			lstm_init_fail("Failed to allocate memory for stateful backprop through time deltas, inner in layer\n");
@@ -994,7 +993,7 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 	if ( cache_layers == NULL )
 		lstm_init_fail("Failed to allocate memory for the caches\n");
 
-	while ( i < layers ) {
+	while ( i < (unsigned int) layers ) {
 		cache_layers[i] = calloc(model->params->mini_batch_size + 1, sizeof(lstm_values_cache_t*));
 		if ( cache_layers[i] == NULL )
 			lstm_init_fail("Failed to allocate memory for the caches\n");
@@ -1034,7 +1033,7 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 	}
 
 	i = 0;
-	while ( i < layers ) {
+	while ( i < (unsigned int) layers ) {
 		lstm_init_model(model_layers[i]->F, model_layers[i]->N, &gradient_layers[i], YES_FILL_IT_WITH_A_BUNCH_OF_ZEROS_PLEASE, model->params);
 		lstm_init_model(model_layers[i]->F, model_layers[i]->N, &gradient_layers_entry[i], YES_FILL_IT_WITH_A_BUNCH_OF_ZEROS_PLEASE, model->params);
 		lstm_values_next_cache_init(&d_next_layers[i], model_layers[i]->N, model_layers[i]->F);
@@ -1055,7 +1054,7 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 
 		q = 0;
 
-		while ( q < layers ) {
+		while ( q < (unsigned int) layers ) {
 #ifdef STATEFUL
 			if ( q == 0 ) 
 				lstm_cache_container_set_start(cache_layers[q][0], model_layers[q]->N);
@@ -1067,11 +1066,9 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 			++q;
 		}
 
-		unsigned int check = i % training_points;
-
 		trailing = model->params->mini_batch_size;
 
-		if ( i + model->params->mini_batch_size >= training_points ) {
+		if ( i + model->params->mini_batch_size >= (unsigned int) training_points ) {
 			trailing = training_points - i;
 		}
 
@@ -1084,7 +1081,7 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 			e3 = i % training_points;
 
 			tmp_count = 0;
-			while ( tmp_count < model->F ){
+			while ( tmp_count < (unsigned int) model->F ){
 				first_layer_input[tmp_count] = 0.0; 
 				++tmp_count;
 			}
@@ -1244,12 +1241,12 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 		if ( !(n % STORE_PROGRESS_EVERY_X_ITERATIONS ))
 			lstm_store_progress(n, loss);
 
-		if ( b + model->params->mini_batch_size >= training_points )
+		if ( b + model->params->mini_batch_size >= (unsigned int) training_points )
 			epoch++;
 
 		i = (b + model->params->mini_batch_size) % training_points;
 
-		if ( i < model->params->mini_batch_size){
+		if ( i < (unsigned int) model->params->mini_batch_size){
 			i = 0;
 		}
 
@@ -1296,7 +1293,7 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 		lstm_values_next_cache_free(d_next_layers[p]);
 
 		i = 0;
-		while ( i < model->params->mini_batch_size) {
+		while ( i < (unsigned int) model->params->mini_batch_size) {
 			lstm_cache_container_free(cache_layers[p][i]);
 			++i;
 		}
@@ -1312,7 +1309,7 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_p
 
 #ifdef STATEFUL
 	i = 0;
-	while ( i < layers) {
+	while ( i < (unsigned int) layers) {
 		free(stateful_d_next[i]);
 		++i;
 	}
