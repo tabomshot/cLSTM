@@ -7,7 +7,8 @@
 
 #define ITERATIONS (10000)
 
-static int store_net_layers(int nr_layers, lstm_model_t **model_layers)
+static int store_net_layers(int nr_layers, int nr_apps, int nr_loccs, 
+							lstm_model_t **model_layers)
 {
 	if (model_layers == NULL) {
 		printf("Error: model_layers is null!\n");
@@ -15,7 +16,8 @@ static int store_net_layers(int nr_layers, lstm_model_t **model_layers)
 	}
 
 	lstm_store_net_layers(model_layers, STD_LOADABLE_NET_NAME);
-	lstm_store_net_layers_as_json(model_layers, nr_layers, STD_JSON_NET_NAME);
+	lstm_store_net_layers_as_json(model_layers, nr_layers, 
+		nr_apps, nr_loccs, STD_JSON_NET_NAME);
 	printf("model stored\n");
 
 	return 0;
@@ -100,7 +102,7 @@ static int run_lstm_train(int nr_layers, int nr_neurons, int nr_apps,
 			X_train_app, X_train_locc, Y_train_app, ITERATIONS, nr_layers);
 
 	// store trained model 
-	store_net_layers(nr_layers, model_layers);
+	store_net_layers(nr_layers, nr_apps, nr_loccs, model_layers);
 
 	// free memory areas
 	if (X_train_app) 

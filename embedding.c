@@ -66,7 +66,6 @@ int load_and_build_data(const char *filename, int **ptr_arr_data,
 
         if (c[0] == '\n' && s != 0) {
             buf[s] = 0; // add null
-            printf("i: %d\n", i);
             ptr_temp[i++] = atoi(buf) + op_offset;
             memset(buf, 0x00, BUFFER_LEN);
             s = 0;

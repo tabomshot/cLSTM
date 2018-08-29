@@ -187,7 +187,7 @@ void sum_gradients(lstm_model_t*, lstm_model_t*);
 //					model (already init), name
 int lstm_read_net_layers(lstm_model_t**, const char *);
 int lstm_store_net_layers(lstm_model_t**, const char *);
-int lstm_store_net_layers_as_json(lstm_model_t**, int, const char *); 
+int lstm_store_net_layers_as_json(lstm_model_t**, int, int, int, const char *); 
 void lstm_store_progress(unsigned int, double);
 
 // The main entry point

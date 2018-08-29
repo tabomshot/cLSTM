@@ -817,7 +817,8 @@ int lstm_store_net_layers(lstm_model_t** model, const char * filename)
 	return 0;
 }
 
-int lstm_store_net_layers_as_json(lstm_model_t** model, int layers, const char * filename) 
+int lstm_store_net_layers_as_json(lstm_model_t** model, int nr_layers, 
+	int nr_apps, int nr_loccs, const char * filename) 
 {
 	int p = 0;
 	FILE *fp;
@@ -830,11 +831,13 @@ int lstm_store_net_layers_as_json(lstm_model_t** model, int layers, const char *
 
 	fprintf(fp, "{");
 	fprintf(fp, "\n");
-	fprintf(fp, "\"LSTM layers\": %d,\n", layers);
+	fprintf(fp, "\"LSTM layers\": %d,\n", nr_layers);
 	fprintf(fp, "\"LSTM neurons\": %d,\n", model[0]->N);
-	fprintf(fp, "\"Input Features\": %d,\n", model[0]->F);
+	fprintf(fp, "\"Input features\": %d,\n", nr_apps + nr_loccs);
+	fprintf(fp, "\"Apps\": %d,\n", nr_apps);
+	fprintf(fp, "\"Loccs\": %d,\n", nr_loccs);
 	
-	while (p < layers) {
+	while (p < nr_layers) {
 
 		if ( p > 0 ) 
 			fprintf(fp, ",\n");
