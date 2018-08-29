@@ -22,7 +22,7 @@ static int store_net_layers(int nr_layers, lstm_model_t **model_layers)
 } 
 
 static int run_lstm_train(int nr_layers, int nr_neurons, int nr_apps, 
-						int nr_loccs /* location clusters */, 
+						int nr_loccs, /* location clusters */ 
 						const char *f_dataset_app, const char *f_dataset_locc)
 {
 	int i = 0;
@@ -33,6 +33,7 @@ static int run_lstm_train(int nr_layers, int nr_neurons, int nr_apps,
 	int *X_train_locc = NULL;
 	int *Y_train_app = NULL;
 
+	lstm_model_t **model_layers = NULL;
 	lstm_model_parameters_t params = {
 		.loss_moving_avg = LOSS_MOVING_AVG,
 		.learning_rate = STD_LEARNING_RATE,
@@ -50,14 +51,12 @@ static int run_lstm_train(int nr_layers, int nr_neurons, int nr_apps,
 		.model_regularize = MODEL_REGULARIZE,
 		.layers = nr_layers,
 		.optimizer = OPTIMIZE_ADAM,
-	};
-
-	lstm_model_t **model_layers = NULL;
+	};	
 
 	srand(time(NULL));
 
 	// call load_and_build_data to allocate and build X_train 
-	ret1 = load_and_build_data(f_dataset_app, &X_train_app);
+	ret1 = load_and_build_data(f_dataset_app, &X_train_app, 0);
 	if (ret1 < 0) {
 		printf("Error: failed to load and build dataset\n");
 		return -1;
@@ -66,7 +65,7 @@ static int run_lstm_train(int nr_layers, int nr_neurons, int nr_apps,
 	nr_features = nr_apps;
 
 	if (nr_loccs > 0) {
-		ret2 = load_and_build_data(f_dataset_locc, &X_train_locc);
+		ret2 = load_and_build_data(f_dataset_locc, &X_train_locc, nr_apps);
 		if (ret2 < 0 || ret2 != ret1) {
 			printf("Error: location datapoints is not equal to app\n");
 			return -1;
@@ -74,15 +73,15 @@ static int run_lstm_train(int nr_layers, int nr_neurons, int nr_apps,
 		nr_features += nr_loccs;
 	}
 
+	//y_t = x_(t+1)
+	Y_train_app = &X_train_app[1];
+
 	// allocate layers 
 	model_layers = (lstm_model_t**) calloc(nr_layers, sizeof(lstm_model_t*));
 	if (model_layers == NULL) {
 		printf("Error: failed to allocate layers\n");
 		return -1;
 	}
-
-	//y_t = x_(t+1)
-	Y_train_app = &X_train_app[1];
 
 	// initialize per-layer model 
 	for (i = 0; i < nr_layers; i++) {
@@ -103,10 +102,13 @@ static int run_lstm_train(int nr_layers, int nr_neurons, int nr_apps,
 	// store trained model 
 	store_net_layers(nr_layers, model_layers);
 
-	// X_train is allocated by load_and_build_data
-	free_loaded_data(X_train_app);
-	free_loaded_data(X_train_locc);
-	free(model_layers);
+	// free memory areas
+	if (X_train_app) 
+		free(X_train_app);
+	if (X_train_locc) 
+		free(X_train_locc);
+	if (model_layers)
+		free(model_layers);
 
 	return 0;
 }
@@ -172,6 +174,8 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	return run_lstm_train(nr_layers, nr_neurons, 42, 0,  f_dataset_app, f_dataset_locc);
+	run_lstm_train(nr_layers, nr_neurons, 42, 0,  f_dataset_app, f_dataset_locc);
+
+	return 0;
 }
 

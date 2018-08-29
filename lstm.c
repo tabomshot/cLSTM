@@ -939,7 +939,7 @@ void lstm_model_regularization(lstm_model_t* model, lstm_model_t* gradients)
 }
 
 
-void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, unsigned int training_points, 
+void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, int training_points, 
 	int *X_train_app, int *X_train_locc, int *Y_train_app, unsigned long iterations, int layers)
 {
 	//int N,F,S, status = 0, p = 0;
@@ -1258,7 +1258,7 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, unsigned int t
 		++n;
 
 #if ABORT_WHEN_IN_PURGATORY
-		if (epoch > 1000)// 10 epoch of 100k+ training set seems enough
+		if (epoch > 100)// 10 epoch of 100k+ training set seems enough
 			break;
 
 		//or we are in purgatory
@@ -1294,7 +1294,6 @@ void lstm_train(lstm_model_t *model, lstm_model_t **model_layers, unsigned int t
 
 		i = 0;
 		while ( i < model->params->mini_batch_size) {
-			lstm_cache_container_free(cache_layers[p][i]);
 			lstm_cache_container_free(cache_layers[p][i]);
 			++i;
 		}

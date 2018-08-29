@@ -191,7 +191,7 @@ int lstm_store_net_layers_as_json(lstm_model_t**, int, const char *);
 void lstm_store_progress(unsigned int, double);
 
 // The main entry point
-void lstm_train(lstm_model_t*, lstm_model_t**, unsigned int, int*, int*, int*, unsigned long, int);
+void lstm_train(lstm_model_t*, lstm_model_t**, int, int*, int*, int*, unsigned long, int);
 
 // Used to output a given number of characters from the net based on an input char
 void lstm_output_string_layers(lstm_model_t **,  int, int, int);

@@ -1,4 +1,6 @@
 progress.csv
 lstm_net.json
 lstm_net.net
-
+*.o
+lstmpredict
+lstmtrain

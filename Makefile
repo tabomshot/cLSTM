@@ -3,7 +3,8 @@ CC = gcc
 OBJECTS 		= lstm.o embedding.o layers.o utilities.o 
 OBJECTS_TRAIN 	= train.o 
 OBJECTS_PREDICT = predict.o 
-CFLAGS = -Wall -O3
+CFLAGS = -Wall -O3 -DNDEBUG 
+#CFLAGS = -Wall -g -O0 -DDEBUG
 LDFLAGS = -lm  
 
 all: lstmtrain lstmpredict
